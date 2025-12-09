@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import User from '../models/User.js';
 
 const getJwtSecret = () => {
@@ -140,5 +141,56 @@ export const checkAuth = async (req, res) => {
     });
   } catch (error) {
     res.json({ user: null });
+  }
+};
+
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'No account found with that email' });
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+    user.resetPasswordToken = hashedToken;
+    user.resetPasswordExpiry = Date.now() + 3600000;
+    await user.save({ validateBeforeSave: false });
+
+    res.json({ 
+      message: 'Password reset token generated',
+      resetToken: resetToken
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { token, password } = req.body;
+
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpiry: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid or expired reset token' });
+    }
+
+    user.password = password;
+    user.resetPasswordToken = null;
+    user.resetPasswordExpiry = null;
+    await user.save();
+
+    res.json({ message: 'Password reset successful' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
