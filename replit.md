@@ -38,6 +38,7 @@ A full-stack MERN e-commerce application built with React, Express, and MongoDB.
 - Admin: admin@shophub.com / admin123
 
 ## Recent Changes
+- Added forgot password feature with secure token-based reset flow
 - Initial project setup with full MERN stack implementation
 
 ## User Preferences
