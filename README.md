@@ -94,4 +94,4 @@ Start both server and client:
 - `POST /api/orders` - Create order
 - `GET /api/orders/my-orders` - Get user orders
 - `GET /api/orders/all` - Get all orders (admin)
-# ShopHub---E-Commerce-Application
+
